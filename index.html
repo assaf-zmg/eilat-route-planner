@@ -50,6 +50,14 @@
             color: var(--text-dim);
         }
 
+        .date-picker-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
         .header .date-badge {
             display: inline-block;
             background: var(--accent);
@@ -58,7 +66,25 @@
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 600;
-            margin-top: 8px;
+        }
+
+        .date-input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .date-input:hover, .date-input:focus { border-color: var(--accent); }
+        .date-input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
         }
 
         .alert-banner {
@@ -596,7 +622,10 @@
 <div class="header">
     <h1>🚗 מתכנן מסלול: פתח תקווה → אילת</h1>
     <div class="subtitle">מלון רויאל ביץ׳ אילת | ניתוח מסלולים בזמן אמת</div>
-    <div class="date-badge" id="tripDate"></div>
+    <div class="date-picker-row">
+        <div class="date-badge" id="tripDate"></div>
+        <input type="date" id="tripDateInput" class="date-input" />
+    </div>
 </div>
 
 <div class="alert-banner danger">
@@ -821,17 +850,49 @@ const ROAD_STATUSES = [
 
 let selectedTime = '06:00';
 let currentSort = 'recommended';
+let selectedDate = null;
+
+function formatDateHe(date) {
+    return date.toLocaleDateString('he-IL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function toInputValue(date) {
+    return date.toISOString().split('T')[0];
+}
 
 function init() {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const dateStr = tomorrow.toLocaleDateString('he-IL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    document.getElementById('tripDate').textContent = `📅 מחר: ${dateStr}`;
+    selectedDate = tomorrow;
+
+    const input = document.getElementById('tripDateInput');
+    const today = new Date();
+    input.min = toInputValue(today);
+    input.value = toInputValue(tomorrow);
+
+    updateDateBadge();
+
+    input.addEventListener('change', () => {
+        selectedDate = new Date(input.value + 'T12:00:00');
+        updateDateBadge();
+        renderRoutes();
+        updateRecommendation();
+    });
 
     renderRoadStatus();
     renderRoutes();
     updateRecommendation();
     setupListeners();
+}
+
+function updateDateBadge() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const isToday = selectedDate.toDateString() === new Date().toDateString();
+    const isTomorrow = selectedDate.toDateString() === tomorrow.toDateString();
+    const prefix = isToday ? 'היום' : isTomorrow ? 'מחר' : '';
+    const label = prefix ? `📅 ${prefix}: ${formatDateHe(selectedDate)}` : `📅 ${formatDateHe(selectedDate)}`;
+    document.getElementById('tripDate').textContent = label;
 }
 
 function renderRoadStatus() {
@@ -999,8 +1060,11 @@ function setupListeners() {
 }
 
 // Refresh data functionality
-const OREF_ALERTS_URL = 'https://www.oref.org.il/WarningMessages/History/AlertsHistory.json';
-const OREF_LIVE_URL = 'https://www.oref.org.il/warningMessages/alert/Alerts.json';
+const OREF_HISTORY_URL = 'https://www.oref.org.il/Shared/Ajax/GetAlarmsHistory.aspx?lang=he&mode=0';
+const CORS_PROXIES = [
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+];
 
 function updateTimestamp() {
     const now = new Date();
@@ -1011,27 +1075,20 @@ function updateTimestamp() {
 }
 
 async function fetchAlerts() {
-    // Try fetching from oref.org.il (may be blocked by CORS in browser)
-    const endpoints = [
-        { url: OREF_LIVE_URL, type: 'live' },
-        { url: OREF_ALERTS_URL, type: 'history' }
-    ];
-
-    for (const ep of endpoints) {
+    for (const proxy of CORS_PROXIES) {
         try {
-            const resp = await fetch(ep.url, {
-                headers: { 'Referer': 'https://www.oref.org.il/', 'X-Requested-With': 'XMLHttpRequest' },
-                mode: 'cors',
-                signal: AbortSignal.timeout(5000)
+            const resp = await fetch(proxy(OREF_HISTORY_URL), {
+                signal: AbortSignal.timeout(7000)
             });
             if (resp.ok) {
                 const text = await resp.text();
-                if (text.trim()) {
-                    return { data: JSON.parse(text), type: ep.type };
+                if (text && text.trim() && text.trim() !== 'null') {
+                    const data = JSON.parse(text);
+                    return { data: Array.isArray(data) ? data : [], type: 'history' };
                 }
             }
         } catch (e) {
-            // CORS or network error - expected for static hosting
+            // try next proxy
         }
     }
     return null;
