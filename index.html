@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מתכנן מסלול לאילת | פתח תקווה → רויאל ביץ׳</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --card-hover: #273548;
+            --accent: #38bdf8;
+            --accent2: #818cf8;
+            --danger: #f87171;
+            --warning: #fbbf24;
+            --success: #34d399;
+            --text: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: #334155;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            padding: 24px 20px 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .header .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .header .date-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--bg);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .alert-banner {
+            padding: 12px 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert-banner.danger {
+            background: rgba(248, 113, 113, 0.15);
+            color: var(--danger);
+            border-bottom: 1px solid rgba(248, 113, 113, 0.2);
+        }
+
+        .alert-banner.warning {
+            background: rgba(251, 191, 36, 0.12);
+            color: var(--warning);
+            border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .content {
+            padding: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 20px 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title .icon {
+            font-size: 1.2rem;
+        }
+
+        /* Departure time selector */
+        .time-selector {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .time-selector label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        .time-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .time-chip {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .time-chip:hover { border-color: var(--accent); }
+        .time-chip.active {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Sort tabs */
+        .sort-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .sort-tab {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .sort-tab.active {
+            background: var(--accent2);
+            color: white;
+            border-color: var(--accent2);
+        }
+
+        /* Route cards */
+        .route-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .route-card:hover { background: var(--card-hover); }
+
+        .route-card.recommended {
+            border-color: var(--success);
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.1);
+        }
+
+        .route-card.risky {
+            border-color: var(--danger);
+            opacity: 0.7;
+        }
+
+        .route-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .route-name {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .route-badge {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .badge-recommended { background: rgba(52, 211, 153, 0.2); color: var(--success); }
+        .badge-caution { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
+        .badge-danger { background: rgba(248, 113, 113, 0.2); color: var(--danger); }
+
+        .route-roads {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+
+        .route-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 8px 4px;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        /* Risk meters */
+        .risk-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .risk-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+        }
+
+        .risk-label {
+            width: 80px;
+            color: var(--text-dim);
+            flex-shrink: 0;
+        }
+
+        .risk-bar-bg {
+            flex: 1;
+            height: 6px;
+            background: var(--bg);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .risk-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .risk-bar-fill.low { background: var(--success); }
+        .risk-bar-fill.medium { background: var(--warning); }
+        .risk-bar-fill.high { background: var(--danger); }
+
+        .risk-value {
+            width: 32px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        /* Details panel */
+        .route-details {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        .route-details.open { display: block; }
+
+        .detail-item {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .detail-icon { flex-shrink: 0; }
+
+        .route-card .expand-hint {
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            margin-top: 8px;
+        }
+
+        /* Recommendation box */
+        .recommendation {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.1), rgba(56, 189, 248, 0.1));
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .recommendation h3 {
+            color: var(--success);
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .recommendation p {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-dim);
+        }
+
+        .recommendation strong { color: var(--text); }
+
+        /* Security timeline */
+        .timeline {
+            position: relative;
+            padding-right: 24px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            right: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            background: var(--card);
+            border-radius: 8px;
+            font-size: 0.82rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            right: -20px;
+            top: 14px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: var(--bg);
+        }
+
+        .timeline-item.alert::before { background: var(--danger); border-color: var(--danger); }
+        .timeline-item.info::before { background: var(--accent); border-color: var(--accent); }
+
+        .timeline-date {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            margin-bottom: 3px;
+        }
+
+        /* Flood status */
+        .road-status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .road-status-item {
+            background: var(--card);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .road-status-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .road-status-state {
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-dot.open { background: var(--success); }
+        .status-dot.partial { background: var(--warning); }
+        .status-dot.closed { background: var(--danger); }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px 16px;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            border-top: 1px solid var(--border);
+            margin-top: 24px;
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.75rem;
+            color: var(--warning);
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+
+        /* Refresh button */
+        .refresh-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 20px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .refresh-bar .last-update {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .refresh-btn:hover { background: #7dd3fc; }
+        .refresh-btn:active { transform: scale(0.96); }
+
+        .refresh-btn.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .refresh-btn .spinner {
+            display: none;
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--bg);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .refresh-btn.loading .spinner { display: inline-block; }
+        .refresh-btn.loading .refresh-icon { display: none; }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Live alerts feed */
+        .live-alerts {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 14px;
+            margin-top: 12px;
+            border: 1px solid var(--border);
+            display: none;
+        }
+
+        .live-alerts.visible { display: block; }
+
+        .live-alerts-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--danger);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .live-alert-item {
+            font-size: 0.78rem;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+
+        .live-alert-item:last-child { border-bottom: none; }
+
+        .live-alert-item .alert-time {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .no-alerts {
+            font-size: 0.8rem;
+            color: var(--success);
+            padding: 8px 0;
+        }
+
+        .source-links {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .source-link {
+            font-size: 0.7rem;
+            color: var(--accent);
+            text-decoration: none;
+            background: var(--bg);
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: border-color 0.2s;
+        }
+
+        .source-link:hover { border-color: var(--accent); }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse { animation: pulse 2s infinite; }
+
+        /* Desktop */
+        @media (min-width: 768px) {
+            .content { padding: 24px; }
+            .header { padding: 32px 24px 24px; }
+            .header h1 { font-size: 1.6rem; }
+            .route-stats { grid-template-columns: repeat(4, 1fr); }
+            .road-status-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🚗 מתכנן מסלול: פתח תקווה → אילת</h1>
+    <div class="subtitle">מלון רויאל ביץ׳ אילת | ניתוח מסלולים בזמן אמת</div>
+    <div class="date-badge" id="tripDate"></div>
+</div>
+
+<div class="alert-banner danger">
+    <span class="pulse">🔴</span>
+    <span>אזעקות אחרונות: 22.3.2026 — שיגורי טילים מאיראן לאזור אילת</span>
+</div>
+
+<div class="alert-banner warning">
+    <span>🌊</span>
+    <span>סיכון שיטפונות: עונת גשמים פעילה בנגב ובערבה — בדקו עדכונים לפני יציאה</span>
+</div>
+
+<div class="refresh-bar">
+    <div class="last-update">עדכון אחרון: <span id="lastUpdate">טוען...</span></div>
+    <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">
+        <span class="refresh-icon">🔄</span>
+        <span class="spinner"></span>
+        עדכן נתונים
+    </button>
+</div>
+
+<div class="content">
+
+    <!-- Live alerts feed -->
+    <div class="live-alerts" id="liveAlerts">
+        <div class="live-alerts-title">🔴 התרעות אחרונות (פיקוד העורף)</div>
+        <div id="liveAlertsList"></div>
+        <div class="source-links">
+            <a class="source-link" href="https://www.oref.org.il" target="_blank">פיקוד העורף</a>
+            <a class="source-link" href="https://www.tzevaadom.co.il" target="_blank">צבע אדום</a>
+            <a class="source-link" href="https://www.police.gov.il" target="_blank">משטרת ישראל — כבישים</a>
+            <a class="source-link" href="https://www.ims.gov.il" target="_blank">שירות מטאורולוגי</a>
+        </div>
+    </div>
+
+    <!-- Security Timeline -->
+    <div class="section-title"><span class="icon">🛡️</span> מצב ביטחוני — אירועים אחרונים</div>
+    <div class="timeline">
+        <div class="timeline-item alert">
+            <div class="timeline-date">22.3.2026 | 12:06</div>
+            <div>אזעקות באילת — שיגורי טילים בליסטיים מאיראן. מערכות ההגנה יירטו. אין נפגעים.</div>
+        </div>
+        <div class="timeline-item alert">
+            <div class="timeline-date">15.3.2026 | לילה</div>
+            <div>אזעקות באילת ובערבה — ירי טילים מאיראן. מערכות הגנה הופעלו. ללא נפגעים.</div>
+        </div>
+        <div class="timeline-item alert">
+            <div class="timeline-date">14.3.2026 | 15:13</div>
+            <div>אזעקות על ירי טילים ורקטות באזור אילת והערבה.</div>
+        </div>
+        <div class="timeline-item info">
+            <div class="timeline-date">עדכון מצב</div>
+            <div>~20 טילים בליסטיים יורטו מעל ירדן. נוכחות צבאית אמריקנית פעילה בים האדום. אילת ממשיכה לתפקד כרגיל. תיירות מופחתת אך לא מסיבות ביטחוניות.</div>
+        </div>
+    </div>
+
+    <!-- Road flood status -->
+    <div class="section-title"><span class="icon">🌊</span> מצב כבישים — שיטפונות (עונת 2025–2026)</div>
+    <div class="road-status-grid" id="roadStatusGrid">
+        <!-- Filled by JS -->
+    </div>
+
+    <!-- Time selector -->
+    <div class="section-title"><span class="icon">⏰</span> בחר שעת יציאה מועדפת</div>
+    <div class="time-selector">
+        <label>שעת יציאה מפתח תקווה:</label>
+        <div class="time-chips" id="timeChips">
+            <button class="time-chip" data-time="04:00">04:00</button>
+            <button class="time-chip" data-time="05:00">05:00</button>
+            <button class="time-chip active" data-time="06:00">06:00</button>
+            <button class="time-chip" data-time="07:00">07:00</button>
+            <button class="time-chip" data-time="08:00">08:00</button>
+            <button class="time-chip" data-time="10:00">10:00</button>
+            <button class="time-chip" data-time="12:00">12:00</button>
+            <button class="time-chip" data-time="14:00">14:00</button>
+            <button class="time-chip" data-time="16:00">16:00</button>
+        </div>
+    </div>
+
+    <!-- Sort -->
+    <div class="sort-tabs" id="sortTabs">
+        <button class="sort-tab active" data-sort="recommended">מומלץ</button>
+        <button class="sort-tab" data-sort="duration">זמן נסיעה</button>
+        <button class="sort-tab" data-sort="safety">בטיחות</button>
+        <button class="sort-tab" data-sort="flood">סיכון שיטפון</button>
+    </div>
+
+    <!-- Recommendation -->
+    <div class="recommendation" id="recommendation">
+        <h3>💡 המלצה לנסיעה מחר</h3>
+        <p id="recText"></p>
+    </div>
+
+    <!-- Route cards -->
+    <div id="routeCards"></div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+        ⚠️ <strong>הבהרה חשובה:</strong> המידע מבוסס על ניתוח מקורות חדשותיים ואינו מהווה תחליף לבדיקה בזמן אמת.
+        לפני היציאה בדקו:
+        <a href="https://www.police.gov.il" target="_blank">משטרת ישראל</a> לעדכוני כבישים |
+        <a href="https://www.oref.org.il" target="_blank">פיקוד העורף</a> להנחיות ביטחוניות |
+        <a href="https://www.ims.gov.il" target="_blank">השירות המטאורולוגי</a> לתחזית מזג אוויר.
+        הנתונים מעודכנים ל-25.3.2026. מצב הכבישים ומצב ביטחוני עשויים להשתנות.
+    </div>
+</div>
+
+<div class="footer">
+    מבוסס על ניתוח נתוני חדשות ופיקוד העורף | עודכן 25.3.2026<br>
+    <span style="color: var(--text-dim);">יש לבדוק עדכונים לפני כל יציאה לדרך</span>
+</div>
+
+<script>
+const ROUTES = [
+    {
+        id: 'route40',
+        name: 'כביש 40 (דרך באר שבע ומצפה רמון)',
+        roads: 'כביש 6 → כביש 40 → כביש 12 → אילת',
+        distance: 350,
+        baseDuration: 270, // minutes
+        floodRisk: 0.7,
+        floodRiskLabel: 'גבוה',
+        missileRisk: 0.35,
+        missileRiskLabel: 'בינוני',
+        overallSafety: 55,
+        roadSegments: ['כביש 40 (מצפה רמון–ציחור)', 'כביש 12 (יציאה צפונית מאילת)'],
+        floodDetails: 'כביש 40 חסום לעיתים קרובות בקטע מצפה רמון–ציחור בעת שיטפונות. כביש 12 רגיש להצפות ביציאה מאילת.',
+        missileDetails: 'המסלול עובר דרך הנגב — חשיפה בינונית לאזעקות. קטע כביש 12 קרוב לאילת = חשיפה לשיגורים מאיראן/תימן.',
+        tips: 'מסלול הכי ישיר אבל הכי חשוף לשיטפונות. בדקו מצב כביש 40 באזור מצפה רמון לפני יציאה. עדיף בבוקר מוקדם.',
+        trafficByHour: { '04:00': 0, '05:00': 0, '06:00': 10, '07:00': 25, '08:00': 35, '10:00': 30, '12:00': 20, '14:00': 25, '16:00': 40 },
+        recommended: false,
+        status: 'caution'
+    },
+    {
+        id: 'route90',
+        name: 'כביש 90 (דרך ים המלח והערבה)',
+        roads: 'כביש 1 → כביש 90 (ים המלח) → ערבה → אילת',
+        distance: 370,
+        baseDuration: 290,
+        floodRisk: 0.8,
+        floodRiskLabel: 'גבוה מאוד',
+        missileRisk: 0.4,
+        missileRiskLabel: 'בינוני-גבוה',
+        overallSafety: 40,
+        roadSegments: ['כביש 90 (נווה זוהר–ים המלח)', 'כביש 90 (צומת הערבה–אילת)', 'כביש 90 (מצוקי דרגות)'],
+        floodDetails: 'כביש 90 הכי חשוף לשיטפונות — חסימות מרובות בכל אירוע גשם: נחל אשוש, צומת מנוחה, צומת הערבה. באירוע דצמבר 2025 כל הקטעים נחסמו.',
+        missileDetails: 'מסלול ארוך לאורך הערבה — חשיפה מתמשכת לאזור אזעקות אילת. ללא מקלטים בחלקים גדולים של המסלול.',
+        tips: 'נוף מדהים אבל הכי מסוכן מבחינת שיטפונות. המסלול הארוך ביותר עם חשיפה ביטחונית גבוהה. מומלץ רק אם מזג האוויר יבש לחלוטין.',
+        trafficByHour: { '04:00': 0, '05:00': 5, '06:00': 15, '07:00': 20, '08:00': 30, '10:00': 25, '12:00': 15, '14:00': 20, '16:00': 30 },
+        recommended: false,
+        status: 'danger'
+    },
+    {
+        id: 'route40_90',
+        name: 'כביש 40 + 13 + 90 (מסלול משולב)',
+        roads: 'כביש 6 → כביש 40 → כביש 13 → כביש 90 → אילת',
+        distance: 365,
+        baseDuration: 285,
+        floodRisk: 0.6,
+        floodRiskLabel: 'בינוני-גבוה',
+        missileRisk: 0.35,
+        missileRiskLabel: 'בינוני',
+        overallSafety: 50,
+        roadSegments: ['כביש 40 (באר שבע–מצפה רמון)', 'כביש 13 (מנוחה–ציחור)', 'כביש 90 דרום'],
+        floodDetails: 'כביש 13 מצומת מנוחה לצומת ציחור חשוף לחסימות. שילוב של סיכוני שיטפון מכביש 40 וכביש 90.',
+        missileDetails: 'חשיפה דומה למסלול כביש 40 — בינונית באזורי הנגב, עולה עם ההתקרבות לאילת.',
+        tips: 'מסלול חלופי כשכביש 40 חסום בקטע מצפה רמון–ציחור. בדקו גם את מצב כביש 13.',
+        trafficByHour: { '04:00': 0, '05:00': 0, '06:00': 10, '07:00': 20, '08:00': 30, '10:00': 25, '12:00': 15, '14:00': 20, '16:00': 35 },
+        recommended: false,
+        status: 'caution'
+    },
+    {
+        id: 'route6_40_beer',
+        name: 'כביש 6 + 25 + 40 (דרך ערד)',
+        roads: 'כביש 6 → כביש 31 → כביש 25 → כביש 40 → אילת',
+        distance: 380,
+        baseDuration: 300,
+        floodRisk: 0.5,
+        floodRiskLabel: 'בינוני',
+        missileRisk: 0.3,
+        missileRiskLabel: 'בינוני',
+        overallSafety: 60,
+        roadSegments: ['כביש 25 (צומת צפיית)', 'כביש 40 (מצפה רמון דרום)'],
+        floodDetails: 'כביש 25 מזרח חשוף בצומת צפיית. שאר המסלול פחות חשוף לשיטפונות בהשוואה לכביש 90.',
+        missileDetails: 'חשיפה נמוכה-בינונית ברוב המסלול. עולה בקטע האחרון לכיוון אילת.',
+        tips: 'מסלול ארוך יותר אבל עם גמישות — אפשר לעבור דרך ערד ולהחליט על המשך לפי מצב הכבישים.',
+        trafficByHour: { '04:00': 0, '05:00': 0, '06:00': 5, '07:00': 15, '08:00': 25, '10:00': 20, '12:00': 15, '14:00': 15, '16:00': 25 },
+        recommended: false,
+        status: 'caution'
+    },
+    {
+        id: 'route_beersheva',
+        name: 'כביש 40 ישיר (באר שבע → אילת)',
+        roads: 'כביש 6 → כביש 40 ישיר עד אילת',
+        distance: 340,
+        baseDuration: 260,
+        floodRisk: 0.45,
+        floodRiskLabel: 'בינוני',
+        missileRisk: 0.25,
+        missileRiskLabel: 'נמוך-בינוני',
+        overallSafety: 72,
+        roadSegments: ['כביש 40 (באר שבע–מצפה רמון)', 'כביש 40 (מצפה רמון–אילת)'],
+        floodDetails: 'קטע מצפה רמון–ציחור חשוף לחסימות. עם זאת, מאפשר בדיקת מצב בבאר שבע לפני ההמשך דרומה.',
+        missileDetails: 'המסלול הקצר ביותר = חשיפה מינימלית. רוב הנסיעה בנגב המערבי — הכי רחוק מגבול ירדן.',
+        tips: 'המסלול הכי מומלץ! הכי קצר, הכי ישיר, ועם האפשרות הטובה ביותר לשנות מסלול בבאר שבע אם נדרש.',
+        trafficByHour: { '04:00': 0, '05:00': 5, '06:00': 15, '07:00': 30, '08:00': 40, '10:00': 35, '12:00': 20, '14:00': 25, '16:00': 45 },
+        recommended: true,
+        status: 'recommended'
+    }
+];
+
+const ROAD_STATUSES = [
+    { name: 'כביש 90', status: 'partial', text: 'חשוף לחסימות — נחלים רבים' },
+    { name: 'כביש 40', status: 'partial', text: 'בדיקה נדרשת — קטע מצפה רמון' },
+    { name: 'כביש 12', status: 'partial', text: 'חשוף להצפות ביציאה מאילת' },
+    { name: 'כביש 13', status: 'partial', text: 'חסימות אפשריות מנוחה–ציחור' },
+    { name: 'כביש 25', status: 'partial', text: 'צומת צפיית — בדקו לפני יציאה' },
+    { name: 'כביש 6', status: 'open', text: 'פתוח ותקין' },
+    { name: 'כביש 1', status: 'open', text: 'פתוח ותקין' },
+    { name: 'כביש 31', status: 'open', text: 'פתוח ותקין' }
+];
+
+let selectedTime = '06:00';
+let currentSort = 'recommended';
+
+function init() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dateStr = tomorrow.toLocaleDateString('he-IL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('tripDate').textContent = `📅 מחר: ${dateStr}`;
+
+    renderRoadStatus();
+    renderRoutes();
+    updateRecommendation();
+    setupListeners();
+}
+
+function renderRoadStatus() {
+    const grid = document.getElementById('roadStatusGrid');
+    grid.innerHTML = ROAD_STATUSES.map(r => `
+        <div class="road-status-item">
+            <div class="road-status-name">${r.name}</div>
+            <div class="road-status-state">
+                <span class="status-dot ${r.status}"></span>
+                <span>${r.text}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getAdjustedDuration(route) {
+    const trafficAdd = route.trafficByHour[selectedTime] || 0;
+    return route.baseDuration + trafficAdd;
+}
+
+function getArrivalTime(route) {
+    const [h, m] = selectedTime.split(':').map(Number);
+    const duration = getAdjustedDuration(route);
+    const arrH = h + Math.floor((m + duration) / 60);
+    const arrM = (m + duration) % 60;
+    return `${String(arrH % 24).padStart(2, '0')}:${String(arrM).padStart(2, '0')}`;
+}
+
+function getRouteScore(route) {
+    const safety = route.overallSafety;
+    const flood = (1 - route.floodRisk) * 100;
+    const duration = Math.max(0, 100 - (getAdjustedDuration(route) - 250) * 0.5);
+    return safety * 0.35 + flood * 0.35 + duration * 0.3;
+}
+
+function sortRoutes(routes) {
+    switch(currentSort) {
+        case 'recommended': return [...routes].sort((a, b) => getRouteScore(b) - getRouteScore(a));
+        case 'duration': return [...routes].sort((a, b) => getAdjustedDuration(a) - getAdjustedDuration(b));
+        case 'safety': return [...routes].sort((a, b) => b.overallSafety - a.overallSafety);
+        case 'flood': return [...routes].sort((a, b) => a.floodRisk - b.floodRisk);
+        default: return routes;
+    }
+}
+
+function renderRoutes() {
+    const container = document.getElementById('routeCards');
+    const sorted = sortRoutes(ROUTES);
+
+    container.innerHTML = sorted.map((route, i) => {
+        const duration = getAdjustedDuration(route);
+        const hours = Math.floor(duration / 60);
+        const mins = duration % 60;
+        const arrival = getArrivalTime(route);
+        const badgeClass = route.status === 'recommended' ? 'badge-recommended' : route.status === 'danger' ? 'badge-danger' : 'badge-caution';
+        const badgeText = route.status === 'recommended' ? '✓ מומלץ' : route.status === 'danger' ? '⚠ מסוכן' : '⚡ זהירות';
+        const cardClass = route.status === 'recommended' ? 'recommended' : route.status === 'danger' ? 'risky' : '';
+
+        const floodBarClass = route.floodRisk > 0.65 ? 'high' : route.floodRisk > 0.4 ? 'medium' : 'low';
+        const missileBarClass = route.missileRisk > 0.35 ? 'high' : route.missileRisk > 0.2 ? 'medium' : 'low';
+        const safetyBarClass = route.overallSafety > 65 ? 'low' : route.overallSafety > 45 ? 'medium' : 'high';
+
+        return `
+        <div class="route-card ${cardClass}" onclick="toggleDetails('${route.id}')">
+            <div class="route-header">
+                <div class="route-name">${i === 0 && currentSort === 'recommended' ? '🏆 ' : ''}${route.name}</div>
+                <span class="route-badge ${badgeClass}">${badgeText}</span>
+            </div>
+            <div class="route-roads">${route.roads}</div>
+            <div class="route-stats">
+                <div class="stat">
+                    <div class="stat-value">${hours}:${String(mins).padStart(2,'0')}</div>
+                    <div class="stat-label">זמן נסיעה</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${arrival}</div>
+                    <div class="stat-label">הגעה משוערת</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${route.distance} ק״מ</div>
+                    <div class="stat-label">מרחק</div>
+                </div>
+            </div>
+            <div class="risk-bars">
+                <div class="risk-row">
+                    <span class="risk-label">🌊 שיטפון</span>
+                    <div class="risk-bar-bg"><div class="risk-bar-fill ${floodBarClass}" style="width:${route.floodRisk * 100}%"></div></div>
+                    <span class="risk-value">${Math.round(route.floodRisk * 100)}%</span>
+                </div>
+                <div class="risk-row">
+                    <span class="risk-label">🚀 טילים</span>
+                    <div class="risk-bar-bg"><div class="risk-bar-fill ${missileBarClass}" style="width:${route.missileRisk * 100}%"></div></div>
+                    <span class="risk-value">${Math.round(route.missileRisk * 100)}%</span>
+                </div>
+                <div class="risk-row">
+                    <span class="risk-label">🛡️ בטיחות</span>
+                    <div class="risk-bar-bg"><div class="risk-bar-fill ${safetyBarClass}" style="width:${100 - route.overallSafety}%"></div></div>
+                    <span class="risk-value">${route.overallSafety}%</span>
+                </div>
+            </div>
+            <div class="route-details" id="details-${route.id}">
+                <div class="detail-item"><span class="detail-icon">🛣️</span><span><strong>קטעים חשופים:</strong> ${route.roadSegments.join(' | ')}</span></div>
+                <div class="detail-item"><span class="detail-icon">🌊</span><span><strong>שיטפונות:</strong> ${route.floodDetails}</span></div>
+                <div class="detail-item"><span class="detail-icon">🚀</span><span><strong>ביטחון:</strong> ${route.missileDetails}</span></div>
+                <div class="detail-item"><span class="detail-icon">💡</span><span><strong>טיפ:</strong> ${route.tips}</span></div>
+            </div>
+            <div class="expand-hint">לחץ לפרטים נוספים ▾</div>
+        </div>
+        `;
+    }).join('');
+}
+
+function toggleDetails(routeId) {
+    const el = document.getElementById(`details-${routeId}`);
+    el.classList.toggle('open');
+}
+
+function updateRecommendation() {
+    const sorted = sortRoutes(ROUTES);
+    const best = sorted[0];
+    const duration = getAdjustedDuration(best);
+    const hours = Math.floor(duration / 60);
+    const mins = duration % 60;
+    const arrival = getArrivalTime(best);
+
+    let timeAdvice = '';
+    if (['04:00', '05:00', '06:00'].includes(selectedTime)) {
+        timeAdvice = 'יציאה מוקדמת — מצוין! פחות תנועה, פחות חום, ומזג אוויר יציב יותר.';
+    } else if (['07:00', '08:00'].includes(selectedTime)) {
+        timeAdvice = 'שימו לב לעומסים ביציאה מפתח תקווה ובאזור באר שבע.';
+    } else if (['10:00', '12:00'].includes(selectedTime)) {
+        timeAdvice = 'יציאה באמצע היום — תגיעו אחר הצהריים. בדקו תחזית מזג אוויר לשעות הצהריים.';
+    } else {
+        timeAdvice = 'יציאה מאוחרת — תגיעו בשעות הערב. נהיגה בחושך בנגב דורשת תשומת לב מיוחדת.';
+    }
+
+    document.getElementById('recText').innerHTML = `
+        <strong>מסלול מומלץ:</strong> ${best.name}<br>
+        <strong>יציאה:</strong> ${selectedTime} | <strong>הגעה:</strong> ~${arrival} | <strong>זמן:</strong> ${hours}:${String(mins).padStart(2,'0')}<br><br>
+        ${timeAdvice}<br><br>
+        <strong>לפני היציאה:</strong> בדקו מצב כבישים במשטרת ישראל, הנחיות פיקוד העורף, ותחזית מזג אוויר.
+        שמרו על מיכל דלק מלא ומים לדרך.
+    `;
+}
+
+function setupListeners() {
+    document.querySelectorAll('.time-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('.time-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            selectedTime = chip.dataset.time;
+            renderRoutes();
+            updateRecommendation();
+        });
+    });
+
+    document.querySelectorAll('.sort-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentSort = tab.dataset.sort;
+            renderRoutes();
+        });
+    });
+}
+
+// Refresh data functionality
+const OREF_ALERTS_URL = 'https://www.oref.org.il/WarningMessages/History/AlertsHistory.json';
+const OREF_LIVE_URL = 'https://www.oref.org.il/warningMessages/alert/Alerts.json';
+
+function updateTimestamp() {
+    const now = new Date();
+    document.getElementById('lastUpdate').textContent = now.toLocaleString('he-IL', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+}
+
+async function fetchAlerts() {
+    // Try fetching from oref.org.il (may be blocked by CORS in browser)
+    const endpoints = [
+        { url: OREF_LIVE_URL, type: 'live' },
+        { url: OREF_ALERTS_URL, type: 'history' }
+    ];
+
+    for (const ep of endpoints) {
+        try {
+            const resp = await fetch(ep.url, {
+                headers: { 'Referer': 'https://www.oref.org.il/', 'X-Requested-With': 'XMLHttpRequest' },
+                mode: 'cors',
+                signal: AbortSignal.timeout(5000)
+            });
+            if (resp.ok) {
+                const text = await resp.text();
+                if (text.trim()) {
+                    return { data: JSON.parse(text), type: ep.type };
+                }
+            }
+        } catch (e) {
+            // CORS or network error - expected for static hosting
+        }
+    }
+    return null;
+}
+
+function renderAlerts(result) {
+    const container = document.getElementById('liveAlertsList');
+    const panel = document.getElementById('liveAlerts');
+    panel.classList.add('visible');
+
+    if (!result) {
+        container.innerHTML = `
+            <div class="live-alert-item">
+                ⚠️ לא ניתן לגשת ישירות לנתוני פיקוד העורף מדפדפן (חסימת CORS).
+                <br>בדקו את המקורות למטה לעדכונים בזמן אמת:
+            </div>
+        `;
+        return;
+    }
+
+    const alerts = Array.isArray(result.data) ? result.data : [];
+    // Filter for Eilat/Arava area
+    const eilatAlerts = alerts.filter(a => {
+        const area = (a.data || a.title || a.alertDate || '').toLowerCase();
+        return area.includes('אילת') || area.includes('ערבה') || area.includes('eilat');
+    });
+
+    if (eilatAlerts.length === 0) {
+        container.innerHTML = `<div class="no-alerts">✅ אין התרעות פעילות באזור אילת והערבה כרגע</div>`;
+    } else {
+        container.innerHTML = eilatAlerts.slice(0, 10).map(a => `
+            <div class="live-alert-item">
+                <span class="alert-time">${a.alertDate || a.date || ''}</span>
+                ${a.title || a.data || a.category_desc || 'התרעה'}
+            </div>
+        `).join('');
+    }
+}
+
+async function refreshData() {
+    const btn = document.getElementById('refreshBtn');
+    btn.classList.add('loading');
+
+    try {
+        const result = await fetchAlerts();
+        renderAlerts(result);
+        updateTimestamp();
+
+        // Update banner with fresh timestamp
+        const bannerText = document.querySelector('.alert-banner.danger span:last-child');
+        if (bannerText && result && Array.isArray(result.data) && result.data.length > 0) {
+            const eilatAlert = result.data.find(a => {
+                const txt = JSON.stringify(a).toLowerCase();
+                return txt.includes('אילת') || txt.includes('ערבה');
+            });
+            if (eilatAlert) {
+                bannerText.textContent = `התרעה אחרונה: ${eilatAlert.alertDate || eilatAlert.date || ''} — ${eilatAlert.title || eilatAlert.data || 'אזעקה באזור אילת'}`;
+            }
+        }
+    } catch (e) {
+        renderAlerts(null);
+        updateTimestamp();
+    }
+
+    btn.classList.remove('loading');
+}
+
+// Initial timestamp
+updateTimestamp();
+
+init();
+</script>
+
+</body>
+</html>
