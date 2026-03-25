@@ -1060,11 +1060,9 @@ function setupListeners() {
 }
 
 // Refresh data functionality
-const OREF_HISTORY_URL = 'https://www.oref.org.il/Shared/Ajax/GetAlarmsHistory.aspx?lang=he&mode=0';
-const CORS_PROXIES = [
-    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-];
+const TZEVAADOM_URL = 'https://api.tzevaadom.co.il/alerts-history';
+
+const EILAT_CITIES = ['אילת', 'ערבה', 'שיזפון', 'סמר', 'קטורה', 'עידן', 'פארן', 'חצבה', 'עין יהב', 'ספיר', 'עקרבים', 'גרופית', 'יהל', 'באר אורה', 'שחרות', 'אליפז', 'נאות סמדר'];
 
 function updateTimestamp() {
     const now = new Date();
@@ -1075,23 +1073,28 @@ function updateTimestamp() {
 }
 
 async function fetchAlerts() {
-    for (const proxy of CORS_PROXIES) {
+    const attempts = [
+        TZEVAADOM_URL,
+        `https://corsproxy.io/?${encodeURIComponent(TZEVAADOM_URL)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(TZEVAADOM_URL)}`,
+    ];
+    for (const url of attempts) {
         try {
-            const resp = await fetch(proxy(OREF_HISTORY_URL), {
-                signal: AbortSignal.timeout(7000)
-            });
+            const resp = await fetch(url, { signal: AbortSignal.timeout(8000) });
             if (resp.ok) {
-                const text = await resp.text();
-                if (text && text.trim() && text.trim() !== 'null') {
-                    const data = JSON.parse(text);
-                    return { data: Array.isArray(data) ? data : [], type: 'history' };
-                }
+                const data = await resp.json();
+                return { data: Array.isArray(data) ? data : [], type: 'history' };
             }
         } catch (e) {
-            // try next proxy
+            // try next
         }
     }
     return null;
+}
+
+function formatAlertTime(unixTs) {
+    const d = new Date(unixTs * 1000);
+    return d.toLocaleString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function renderAlerts(result) {
@@ -1100,31 +1103,44 @@ function renderAlerts(result) {
     panel.classList.add('visible');
 
     if (!result) {
-        container.innerHTML = `
-            <div class="live-alert-item">
-                ⚠️ לא ניתן לגשת ישירות לנתוני פיקוד העורף מדפדפן (חסימת CORS).
-                <br>בדקו את המקורות למטה לעדכונים בזמן אמת:
-            </div>
-        `;
+        container.innerHTML = `<div class="live-alert-item">⚠️ לא ניתן לטעון נתונים. בדקו את המקורות למטה.</div>`;
         return;
     }
 
-    const alerts = Array.isArray(result.data) ? result.data : [];
-    // Filter for Eilat/Arava area
-    const eilatAlerts = alerts.filter(a => {
-        const area = (a.data || a.title || a.alertDate || '').toLowerCase();
-        return area.includes('אילת') || area.includes('ערבה') || area.includes('eilat');
-    });
+    // Each item has { id, alerts: [{ time, cities, threat, isDrill }] }
+    // Flatten and filter for Eilat/Arava cities
+    const eilatAlerts = [];
+    for (const group of result.data) {
+        if (!Array.isArray(group.alerts)) continue;
+        for (const a of group.alerts) {
+            if (!Array.isArray(a.cities)) continue;
+            const relevant = a.cities.filter(c => EILAT_CITIES.some(ec => c.includes(ec)));
+            if (relevant.length > 0) {
+                eilatAlerts.push({ time: a.time, cities: relevant, threat: a.threat });
+            }
+        }
+    }
+
+    // Sort newest first
+    eilatAlerts.sort((a, b) => b.time - a.time);
 
     if (eilatAlerts.length === 0) {
-        container.innerHTML = `<div class="no-alerts">✅ אין התרעות פעילות באזור אילת והערבה כרגע</div>`;
+        container.innerHTML = `<div class="no-alerts">✅ אין התרעות לאזור אילת והערבה בהיסטוריה האחרונה</div>`;
     } else {
-        container.innerHTML = eilatAlerts.slice(0, 10).map(a => `
+        container.innerHTML = eilatAlerts.slice(0, 15).map(a => `
             <div class="live-alert-item">
-                <span class="alert-time">${a.alertDate || a.date || ''}</span>
-                ${a.title || a.data || a.category_desc || 'התרעה'}
+                <span class="alert-time">${formatAlertTime(a.time)}</span>
+                &nbsp;|&nbsp;${a.cities.join(', ')}
+                ${a.threat === 5 ? ' 🚀' : ' ⚠️'}
             </div>
         `).join('');
+
+        // Update the top banner with the latest alert
+        const latest = eilatAlerts[0];
+        const bannerText = document.querySelector('.alert-banner.danger span:last-child');
+        if (bannerText) {
+            bannerText.textContent = `התרעה אחרונה: ${formatAlertTime(latest.time)} — ${latest.cities.join(', ')}`;
+        }
     }
 }
 
